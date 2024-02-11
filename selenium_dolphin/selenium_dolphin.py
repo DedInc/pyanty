@@ -62,6 +62,13 @@ def get_dolphin_driver():
     archive_name = 'chromedriver' + version
     driver_url = server_url + '/' + archive_name
 
+    executable_ext = '.exe' if platform.system() == 'Windows' else ''
+
+    if os.path.exists('chromedriver'):
+        if os.listdir('chromedriver') != ['chromedriver' + executable_ext]:
+            print('Legacy download detected. Redownloading the chromedriver...')
+            os.remove('chromedriver')
+
     if not os.path.exists(archive_name) and not os.path.exists('chromedriver'):
         download_driver(driver_url, archive_name)
         with zipfile.ZipFile(archive_name, 'r') as z:
@@ -72,11 +79,8 @@ def get_dolphin_driver():
                 with zipfile.ZipFile(supported_driver_archive_bytes) as z3:
                     z3.extractall('chromedriver')
 
-    files = os.listdir('chromedriver')
-    if len(files) != 1:
-        print('Executable selection may work incorrectly. See <https://github.com/DedInc/selenium_dolphin/pull/4>')
-    executable_ext = '.exe' if platform.system() == 'Windows' else ''
     driver_path = os.path.join('chromedriver', "chromedriver" + executable_ext)
+    assert os.path.exists(driver_path), f"Driver not found at {driver_path}"
     return driver_path
 
 
