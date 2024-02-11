@@ -73,7 +73,8 @@ def get_dolphin_driver():
                     z3.extractall('chromedriver')
 
     files = os.listdir('chromedriver')
-    assert len(files) == 1
+    assert len(
+        files) == 1, "See <https://github.com/DedInc/selenium_dolphin/pull/4>"
     driver_path = os.path.join('chromedriver', files[0])
     return driver_path
 
