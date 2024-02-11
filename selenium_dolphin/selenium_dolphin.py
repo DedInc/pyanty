@@ -73,9 +73,10 @@ def get_dolphin_driver():
                     z3.extractall('chromedriver')
 
     files = os.listdir('chromedriver')
-    assert len(
-        files) == 1, "See <https://github.com/DedInc/selenium_dolphin/pull/4>"
-    driver_path = os.path.join('chromedriver', files[0])
+    if len(files) != 1:
+        print('Executable selection may work incorrectly. See <https://github.com/DedInc/selenium_dolphin/pull/4>')
+    executable_ext = '.exe' if platform.system() == 'Windows' else ''
+    driver_path = os.path.join('chromedriver', "chromedriver" + executable_ext)
     return driver_path
 
 
