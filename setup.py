@@ -5,10 +5,10 @@ with open('README.md', 'r', encoding='utf-8') as f:
 
 setup(
     name='selenium_dolphin',
-    version='1.0.0',
+    version='1.0.1',
     author='Maehdakvan',
     author_email='visitanimation@google.com',
-    description='A Python module for controlling Dolphin browser profiles using Selenium. It also has a Dolphin API for creating, editing, and deleting profiles.',
+    description='A Python module for controlling Dolphin browser profiles using Selenium/Pyppeteer. It also has a Dolphin API for creating, editing, and deleting profiles.',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/DedInc/selenium_dolphin',
@@ -22,6 +22,6 @@ setup(
     ],
     packages=find_packages(),
     include_package_data = True,
-    install_requires = ['requests', 'selenium'],
+    install_requires = ['requests', 'selenium', 'pyppeteer'],
     python_requires='>=3.6'
 )

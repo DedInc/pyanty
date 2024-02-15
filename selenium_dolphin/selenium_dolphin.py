@@ -6,6 +6,7 @@ import platform
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from pyppeteer import connect
 
 
 def run_profile(profile_id):
@@ -90,3 +91,11 @@ def get_driver(options=Options(), driver_path='chromedriver.exe', port=9222):
     options.add_experimental_option('debuggerAddress', f'127.0.0.1:{port}')
     driver = webdriver.Chrome(service=Service(driver_path), options=options)
     return driver
+
+async def get_browser(ws_endpoint, port):
+    browser = await connect(browserWSEndpoint=f'ws://127.0.0.1:{port}{ws_endpoint}')
+    pages = await browser.pages()
+    page = pages[0]
+
+    await page.bringToFront()
+    return browser

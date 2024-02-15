@@ -1,2 +1,2 @@
 from .selenium_dolphin import *
-from .api import DolphinAPI
+from .api import DolphinAPI, STABLE_CHROME_VERSION

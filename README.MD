@@ -1,6 +1,6 @@
 # 🐬 selenium-dolphin
 
-A Python module for controlling Dolphin browser profiles using Selenium 🤖. It also has a Dolphin API for creating, editing, and deleting profiles.
+A Python module for controlling Dolphin browser profiles using Selenium or Pyppeteer 🤖. It also has a Dolphin API for creating, editing, and deleting profiles.
 
 ## ⚠️ Warning!
 
@@ -10,11 +10,31 @@ Selenium and some features working only if Dolphin Anty is opened!!! (Local API 
 
 ## 🚀 Quickstart
 
+### Selenium
+
 ```python
+import random
 import selenium_dolphin as dolphin
+from selenium_dolphin import DolphinAPI, STABLE_CHROME_VERSION
 from selenium.webdriver.chrome.options import Options
 
-response = dolphin.run_profile(190438486) # where 190438486 - id of profile
+api = DolphinAPI(api_key='Your Api Key')
+
+response = api.get_profiles()
+if response['data']:
+    profile_id = response['data'][-1]['id']
+    if profile_id:
+        api.delete_profiles([profile_id])
+
+fingerprint = []
+while not fingerprint:
+  fingerprint = api.generate_fingerprint(platform='windows', browser_version=f'{random.randint(114, STABLE_CHROME_VERSION)}')
+
+data = api.fingerprint_to_profile(name='my superprofile', fingerprint=fingerprint)
+
+profile_id = api.create_profile(data)['browserProfileId']
+
+response = dolphin.run_profile(profile_id)
 port = response['automation']['port']
 
 ##### custom chrome options demonstration #####
@@ -27,7 +47,47 @@ driver.get('https://google.com/')
 print(driver.title)
 driver.quit()
 
-dolphin.close_profile(190438486)
+dolphin.close_profile(profile_id)
+```
+
+### Pyppeteer
+
+```python
+import asyncio
+import random
+import selenium_dolphin as dolphin
+from selenium_dolphin import DolphinAPI, STABLE_CHROME_VERSION
+
+api = DolphinAPI(api_key='Your Api Key')
+
+response = api.get_profiles()
+if response['data']:
+    profile_id = response['data'][-1]['id']
+    if profile_id:
+        api.delete_profiles([profile_id])
+
+fingerprint = []
+while not fingerprint:
+  fingerprint = api.generate_fingerprint(platform='windows', browser_version=f'{random.randint(114, STABLE_CHROME_VERSION)}')
+
+data = api.fingerprint_to_profile(name='my superprofile', fingerprint=fingerprint)
+
+profile_id = api.create_profile(data)['browserProfileId']
+
+response = dolphin.run_profile(profile_id)
+port = response['automation']['port']
+ws_endpoint = response['automation']['wsEndpoint']
+
+async def main():
+    browser = await dolphin.get_browser(ws_endpoint, port)
+    pages = await browser.pages()
+    page = pages[0]
+    await page.goto('http://google.com/')
+    await asyncio.sleep(5)
+    await browser.disconnect()
+
+asyncio.run(main())
+dolphin.close_profile(profile_id)
 ```
 
 ## 📝 Get profiles
@@ -160,7 +220,7 @@ print(response)
 Response:
 
 ```json
-{'success': True, 'country': 'US', 'region': 'Virginia', 'city': 'Ashburn', 'ip': '37.19.220.178', 'timezone': 'America/New_York'}
+{"success": true, "country": "US", "region": "Virginia", "city": "Ashburn", "ip": "37.19.220.178", "timezone": "America/New_York"}
 ```
 
 ### MAC Address generator
@@ -174,9 +234,9 @@ print(response)
 Response:
 
 ```json
-{'success': True, 'macAddress': '8E:DD:48:08:F1:31'}
+{"success": true, "macAddress": "8E:DD:48:08:F1:31"}
 ```
 
 ## Conclusion
 
-selenium-dolphin provides a straightforward way to control Dolphin browser profiles for automation testing using Selenium 🤖. With the Dolphin API, you can easily create, customize, and manage profiles right from Python. Give it a try for your next web scraping or test automation project! 🐬
+selenium-dolphin provides a straightforward way to control Dolphin browser profiles for automation testing using Selenium or Pyppeteer 🤖. With the Dolphin API, you can easily create, customize, and manage profiles right from Python. Give it a try for your next web scraping or test automation project! 🐬
