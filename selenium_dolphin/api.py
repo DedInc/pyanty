@@ -30,6 +30,14 @@ class DolphinAPI:
             return r.json()
         except:
             raise RuntimeError(r.text)
+    
+    def get_profile(self, id):
+        r = self.s.get(
+            f'https://dolphin-anty-api.com/browser_profiles/{id}')
+        try:
+            return r.json()
+        except:
+            raise RuntimeError(r.text)
 
     def create_profile(self, data):
         r = self.s.post(
