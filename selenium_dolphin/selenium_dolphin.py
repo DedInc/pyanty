@@ -1,28 +1,29 @@
 import requests
 import os
-import io
 import zipfile
+import tarfile
 import platform
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from pyppeteer import connect
+from .api import STABLE_CHROME_VERSION
 
 
-def run_profile(profile_id):
-    return requests.get(f'http://localhost:3001/v1.0/browser_profiles/{profile_id}/start?automation=1').json()
+def run_profile(profile_id, headless=False):
+    is_headless_str = '' if not headless else '&headless=true'
+    return requests.get(f'http://localhost:3001/v1.0/browser_profiles/{profile_id}/start?automation=1' + is_headless_str).json()
 
 
 def close_profile(profile_id):
     return requests.get(f'http://localhost:3001/v1.0/browser_profiles/{profile_id}/stop').json()
 
 
-def download_driver(url, file_name):
-    response = requests.get(url, stream=True)
+def download_driver(response, file_name, driver_version):
     total_size = int(response.headers.get('content-length', 0))
     block_size = 1024
     total_mb = total_size / (1024 * 1024)
-    progress_bar = f"Downloading the Dolphin Anty driver... ["
+    progress_bar = f"Downloading the Dolphin Anty driver v{driver_version}... ["
     symbols_per_mb = 30 / total_mb
     downloaded_mb = 0
     with open(file_name, 'wb') as f:
@@ -30,67 +31,71 @@ def download_driver(url, file_name):
             f.write(data)
             downloaded_mb += block_size / (1024 * 1024)
             progress = int(downloaded_mb * symbols_per_mb)
-            progress_bar = f"Downloading the Dolphin Anty driver... [{progress}/{total_mb:.2f}MB [{'#' * progress}{'-' * (30 - progress)}]"
+            progress_bar = f"Downloading the Dolphin Anty driver v{driver_version}... [{progress}/{total_mb:.2f}MB [{'#' * progress}{'-' * (30 - progress)}]"
             print(f"\r{progress_bar}]", end="")
     print("]")
 
 
-def select_supported_driver_archive(driver_archives, system=platform.system(), architecture=platform.machine()):
-    for driver_archive in driver_archives:
-        if system == 'Windows' and 'win' in driver_archive:
-            if '64' in architecture and '64' in driver_archive:
-                print(f"Selected {driver_archive}")
-                return driver_archive
-            elif '32' in driver_archive and '64' not in architecture:
-                return driver_archive
-        elif system == 'Darwin':
-            if 'arm' in architecture and 'arm' in driver_archive:
-                return driver_archive
-            elif 'intel' in driver_archive:
-                return driver_archive
-        elif system == 'Linux' and 'linux' in driver_archive:
-            return driver_archive
-
-    raise ValueError("Unsupported combination of system and architecture")
-
-
-def get_dolphin_driver():
-    html = requests.get(
-        'https://dolphin-anty.com/docs/basic-automation/#selenium').text
-    driver_slices = html.split('/chromedriver')
-    server_url = driver_slices[0].split('"')[-1]
-    version = driver_slices[1].split('"')[0]
-    archive_name = 'chromedriver' + version
-    driver_url = server_url + '/' + archive_name
-
-    executable_ext = '.exe' if platform.system() == 'Windows' else ''
-
-    if os.path.exists('chromedriver'):
-        if os.listdir('chromedriver') != ['chromedriver' + executable_ext]:
-            print('Legacy download detected. Redownloading the chromedriver...')
-            os.remove('chromedriver')
-
-    if not os.path.exists(archive_name) and not os.path.exists('chromedriver'):
-        download_driver(driver_url, archive_name)
-        with zipfile.ZipFile(archive_name, 'r') as z:
-            supported_driver_archive = select_supported_driver_archive(
-                z.namelist())
-            with z.open(supported_driver_archive) as z2:
-                supported_driver_archive_bytes = io.BytesIO(z2.read())
-                with zipfile.ZipFile(supported_driver_archive_bytes) as z3:
-                    z3.extractall('chromedriver')
-
-    driver_path = os.path.join('chromedriver', "chromedriver" + executable_ext)
-    assert os.path.exists(driver_path), f"Driver not found at {driver_path}"
-    return driver_path
+def get_dolphin_driver(driver_version):
+    base_url = 'https://anty-assets.s3.eu-central-1.amazonaws.com/chromedriver'
+    driver_path = 'chromedriver.zip'
+    
+    while driver_version > 0:
+        archive_name = f'{base_url}{driver_version}.zip'
+        try:
+            response = requests.get(archive_name, stream=True)
+            if response.status_code == 200 and 'zip' in response.headers.get('Content-Type', ''):
+                download_driver(response, driver_path, driver_version)
+                return driver_path
+            else:
+                print(f'Chromedriver version {driver_version} not found. Trying previous version.')
+                driver_version -= 1
+        except requests.RequestException as e:
+            print(f'An error occurred: {e}')
+            driver_version -= 1
+    
+    raise ValueError("Could not find a suitable chromedriver version.")
 
 
-def get_driver(options=Options(), driver_path='chromedriver.exe', port=9222):
+def unzip_driver(driver_path):
+    if driver_path.endswith('.zip'):
+        with zipfile.ZipFile(driver_path, 'r') as zip_ref:
+            zip_ref.extractall(path=os.path.dirname(driver_path))
+    elif driver_path.endswith('.tar.gz'):
+        with tarfile.open(driver_path, 'r:gz') as tar_ref:
+            tar_ref.extractall(path=os.path.dirname(driver_path))
+    else:
+        raise ValueError("Unsupported archive format")
+
+
+def select_driver_executable(system, architecture):
+    if system == 'Windows':
+        executable_name = 'chromedriver.exe' if '64' in architecture else 'chromedriver_x86.exe'
+    elif system == 'Darwin' or (system == 'Linux' and '64' in architecture):
+        executable_name = 'chromedriver'
+    else:
+        raise ValueError("Unsupported operating system or architecture")
+    
+    if system != 'Windows':
+        os.chmod(executable_name, 0o755)
+    
+    return executable_name
+
+
+def get_driver(options=Options(), port=9222):
+    system = platform.system()
+    architecture = platform.machine()
+    driver_path = select_driver_executable(system, architecture)
+
     if not os.path.exists(driver_path):
-        driver_path = get_dolphin_driver()
+        driver_zip_path = get_dolphin_driver(STABLE_CHROME_VERSION)
+        unzip_driver(driver_zip_path)
+        os.remove(driver_zip_path)
+   
     options.add_experimental_option('debuggerAddress', f'127.0.0.1:{port}')
     driver = webdriver.Chrome(service=Service(driver_path), options=options)
     return driver
+
 
 async def get_browser(ws_endpoint, port):
     browser = await connect(browserWSEndpoint=f'ws://127.0.0.1:{port}{ws_endpoint}')

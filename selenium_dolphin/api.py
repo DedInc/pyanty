@@ -30,14 +30,6 @@ class DolphinAPI:
             return r.json()
         except:
             raise RuntimeError(r.text)
-    
-    def get_profile(self, id):
-        r = self.s.get(
-            f'https://dolphin-anty-api.com/browser_profiles/{id}')
-        try:
-            return r.json()
-        except:
-            raise RuntimeError(r.text)
 
     def create_profile(self, data):
         r = self.s.post(
@@ -63,7 +55,7 @@ class DolphinAPI:
         except:
             raise RuntimeError(r.text)
 
-    def generate_fingerprint(self, platform='windows', browser_version=f'{STABLE_CHROME_VERSION}', screen='1920x1080'):
+    def generate_fingerprint(self, platform='windows', browser_version=STABLE_CHROME_VERSION - 1, screen='1920x1080'):
         r = self.s.get(
             f'https://dolphin-anty-api.com/fingerprints/fingerprint?platform={platform}&browser_type=anty&browser_version={browser_version}&type=fingerprint&screen={screen}')
         try:

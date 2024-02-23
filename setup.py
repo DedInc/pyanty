@@ -5,7 +5,7 @@ with open('README.md', 'r', encoding='utf-8') as f:
 
 setup(
     name='selenium_dolphin',
-    version='1.0.1',
+    version='1.0.2',
     author='Maehdakvan',
     author_email='visitanimation@google.com',
     description='A Python module for controlling Dolphin browser profiles using Selenium/Pyppeteer. It also has a Dolphin API for creating, editing, and deleting profiles.',
