@@ -23,6 +23,14 @@ class DolphinAPI:
             'Authorization': f'Bearer {api_key}'
         })
 
+    def get_profile(self, id):
+        r = self.s.get(
+            f'https://dolphin-anty-api.com/browser_profiles/{id}')
+        try:
+            return r.json()
+        except:
+            raise RuntimeError(r.text)
+
     def get_profiles(self, page=1, limit=50):
         r = self.s.get(
             f'https://dolphin-anty-api.com/browser_profiles?page={page}&limit={limit}')
