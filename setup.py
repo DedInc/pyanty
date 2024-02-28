@@ -5,7 +5,7 @@ with open('README.md', 'r', encoding='utf-8') as f:
 
 setup(
     name='selenium_dolphin',
-    version='1.0.3',
+    version='1.0.4',
     author='Maehdakvan',
     author_email='visitanimation@google.com',
     description='A Python module for controlling Dolphin browser profiles using Selenium/Pyppeteer. It also has a Dolphin API for creating, editing, and deleting profiles.',
@@ -22,6 +22,6 @@ setup(
     ],
     packages=find_packages(),
     include_package_data = True,
-    install_requires = ['requests', 'selenium', 'pyppeteer'],
+    install_requires = ['requests', 'selenium', 'pyppeteer', 'pywinauto'],
     python_requires='>=3.6'
 )

@@ -8,6 +8,8 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from pyppeteer import connect
+from pywinauto.application import Application
+from pywinauto import timings
 
 
 def run_profile(profile_id, headless=False):
@@ -129,3 +131,30 @@ async def get_browser(ws_endpoint, port):
 
     await page.bringToFront()
     return browser
+
+
+def authorize_in_window(login, password):
+    app = Application(backend='uia').connect(title_re='Dolphin{anty}')
+    main_window = app.window(title_re='Dolphin{anty}')
+
+    if main_window.exists():
+        main_window.set_focus()
+        descendants = main_window.descendants(control_type='Edit')
+        email_field = None
+        password_field = None
+
+        for desc in descendants:
+            if 'Email' in desc.window_text() or 'email' in desc.legacy_properties().get('Value', '').lower():
+                email_field = desc
+            elif 'Password' in desc.window_text() or 'password' in desc.legacy_properties().get('Value', '').lower():
+                password_field = desc
+        
+        if email_field and password_field:
+            email_field.click_input()
+            email_field.type_keys(login)
+            
+            password_field.click_input()
+            password_field.type_keys(password)
+
+            sign_in_button = main_window.descendants(title='SIGN IN', control_type='Button')[0]
+            sign_in_button.click()
