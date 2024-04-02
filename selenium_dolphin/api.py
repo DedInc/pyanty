@@ -1,7 +1,9 @@
 import requests
 import re
 import os
+import sys
 import chardet
+from .utils import collect_garbage
 
 data = requests.get('https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json').json()
 STABLE_CHROME_VERSION = int(data['channels']['Stable']['version'].split('.')[0])
@@ -22,6 +24,7 @@ class DolphinAPI:
             'Referer': 'https://app.dolphin-anty-ru.online/',
             'Authorization': f'Bearer {api_key}'
         })
+        self._collect_garbage()
 
     def get_profile(self, id):
         r = self.s.get(
@@ -212,9 +215,17 @@ class DolphinAPI:
     def _get_latest_release(self):
         return requests.get('https://api.github.com/repos/dolphinrucom/anty-releases/releases/latest').json()['name']
 
+    def _collect_garbage(self):
+        collect_garbage(self)
+
     def _scan_api_token(self):
-        storage_path = os.path.join(
-            os.getenv('APPDATA'), 'dolphin_anty', 'Local Storage', 'leveldb')
+        if sys.platform == 'win32':
+            storage_path = os.path.join(os.getenv('APPDATA'), 'dolphin_anty', 'Local Storage', 'leveldb')
+        elif sys.platform == 'darwin':
+            storage_path = os.path.expanduser('~/Library/Application Support/dolphin_anty/Local Storage/leveldb')
+        else:
+            storage_path = os.path.expanduser('~/.config/dolphin_anty/Local Storage/leveldb')
+
         if os.path.exists(storage_path):
             files = os.listdir(storage_path)
             for file in files:
@@ -233,7 +244,7 @@ class DolphinAPI:
                     token_pattern = r'accessToken.*?(.{100,})"'
                     match = re.search(token_pattern, logs)
                     if match:
-                        return match.group(1).split('')[2]
+                        return match.group(1).split('')[2]
                 except Exception as e:
                     print(e, file)
                     pass

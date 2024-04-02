@@ -1,5 +1,6 @@
 import requests
 import os
+import sys
 import io
 import zipfile
 import shutil
@@ -8,8 +9,10 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from pyppeteer import connect
-from pywinauto.application import Application
-from pywinauto import timings
+from .utils import collect_garbage
+
+if sys.platform == 'win32':
+    from pywinauto.application import Application
 
 
 def run_profile(profile_id, headless=False):
@@ -18,7 +21,9 @@ def run_profile(profile_id, headless=False):
 
 
 def close_profile(profile_id):
-    return requests.get(f'http://localhost:3001/v1.0/browser_profiles/{profile_id}/stop').json()
+    r = requests.get(f'http://localhost:3001/v1.0/browser_profiles/{profile_id}/stop').json()
+    collect_garbage(profile_id=profile_id)
+    return r
 
 
 def download_driver_to_memory(driver_url):
@@ -67,7 +72,7 @@ def clean_trash(zip_files):
     for zip_file in zip_files:
         os.remove(zip_file)
 
-    if os.path.exists('__MACOSX'):
+    if os.path.exists('__MACOSX') and sys.platform != 'darwin':
         shutil.rmtree(os.path.abspath('__MACOSX'))
 
 def unpack_subarchives(system, architecture):
@@ -133,28 +138,29 @@ async def get_browser(ws_endpoint, port):
     return browser
 
 
-def authorize_in_window(login, password):
-    app = Application(backend='uia').connect(title_re='Dolphin{anty}')
-    main_window = app.window(title_re='Dolphin{anty}')
+if sys.platform == 'win32':
+    def authorize_in_window(login, password):
+        app = Application(backend='uia').connect(title_re='Dolphin{anty}')
+        main_window = app.window(title_re='Dolphin{anty}')
 
-    if main_window.exists():
-        main_window.set_focus()
-        descendants = main_window.descendants(control_type='Edit')
-        email_field = None
-        password_field = None
+        if main_window.exists():
+            main_window.set_focus()
+            descendants = main_window.descendants(control_type='Edit')
+            email_field = None
+            password_field = None
 
-        for desc in descendants:
-            if 'Email' in desc.window_text() or 'email' in desc.legacy_properties().get('Value', '').lower():
-                email_field = desc
-            elif 'Password' in desc.window_text() or 'password' in desc.legacy_properties().get('Value', '').lower():
-                password_field = desc
-        
-        if email_field and password_field:
-            email_field.click_input()
-            email_field.type_keys(login)
+            for desc in descendants:
+                if 'Email' in desc.window_text() or 'email' in desc.legacy_properties().get('Value', '').lower():
+                    email_field = desc
+                elif 'Password' in desc.window_text() or 'password' in desc.legacy_properties().get('Value', '').lower():
+                    password_field = desc
             
-            password_field.click_input()
-            password_field.type_keys(password)
+            if email_field and password_field:
+                email_field.click_input()
+                email_field.type_keys(login)
+                
+                password_field.click_input()
+                password_field.type_keys(password)
 
-            sign_in_button = main_window.descendants(title='SIGN IN', control_type='Button')[0]
-            sign_in_button.click()
+                sign_in_button = main_window.descendants(title='SIGN IN', control_type='Button')[0]
+                sign_in_button.click()

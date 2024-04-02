@@ -1,11 +1,16 @@
+import sys
 from setuptools import setup, find_packages
 
 with open('README.md', 'r', encoding='utf-8') as f:
     long_description = f.read()
 
+install_requires = ['requests', 'selenium', 'pyppeteer'] 
+if sys.platform == 'win32':
+    install_requires.append('pywinauto')
+
 setup(
     name='selenium_dolphin',
-    version='1.0.4',
+    version='1.0.5',
     author='Maehdakvan',
     author_email='visitanimation@google.com',
     description='A Python module for controlling Dolphin browser profiles using Selenium/Pyppeteer. It also has a Dolphin API for creating, editing, and deleting profiles.',
@@ -18,10 +23,12 @@ setup(
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
-        'Operating System :: OS Independent',
+        'Operating System :: Microsoft :: Windows', 
+        'Operating System :: POSIX :: Linux',
+        'Operating System :: MacOS',
     ],
     packages=find_packages(),
     include_package_data = True,
-    install_requires = ['requests', 'selenium', 'pyppeteer', 'pywinauto'],
+    install_requires = install_requires,
     python_requires='>=3.6'
 )
