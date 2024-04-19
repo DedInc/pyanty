@@ -10,7 +10,7 @@ if sys.platform == 'win32':
 
 setup(
     name='selenium_dolphin',
-    version='1.0.5',
+    version='1.0.6',
     author='Maehdakvan',
     author_email='visitanimation@google.com',
     description='A Python module for controlling Dolphin browser profiles using Selenium/Pyppeteer. It also has a Dolphin API for creating, editing, and deleting profiles.',

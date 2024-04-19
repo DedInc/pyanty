@@ -13,7 +13,10 @@ def get_profile_folder():
 
 def clean_if_exists(dir_to_clean):
     if os.path.exists(dir_to_clean):
-        shutil.rmtree(dir_to_clean)
+        try:
+            shutil.rmtree(dir_to_clean)
+        except OSError:
+            pass
 
 
 def collect_garbage(api=None, profile_id=None):
