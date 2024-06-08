@@ -42,6 +42,55 @@ class DolphinAPI:
         except:
             raise RuntimeError(r.text)
 
+
+    def get_extensions(self, page=1, limit=50):
+        r = self.s.get(
+            f'https://api.dolphin-anty-ru.online/extensions?page={page}&limit={limit}')
+        try:
+            return r.json()
+        except:
+            raise RuntimeError(r.text)
+
+    def load_extension_from_url(self, url):
+        r = self.s.post(
+            f'https://api.dolphin-anty-ru.online/extensions', json={
+            'url': url,
+            'sharedToEntireTeam': False,
+            'mainWebsite': ['all']
+        })
+        try:
+            return r.json()
+        except:
+            raise RuntimeError(r.text)
+
+    def load_extension_from_zip(self, extension_name, path):
+        with open(path, 'rb') as file:
+            files = {'file': ('a.zip', file, 'application/x-zip-compressed')}
+            data = {
+                'extensionName': extension_name,
+                'sharedToEntireTeam': '0',
+                'mainWebsite[]': 'all'
+            }
+            r = self.s.post(
+                f'https://api.dolphin-anty-ru.online/extensions/upload-zipped',
+                files=files,
+                data=data
+            )
+        try:
+            return r.json()
+        except:
+            raise RuntimeError(r.text)
+
+    def delete_extensions(self, ids):
+        r = self.s.delete(
+            f'https://api.dolphin-anty-ru.online/extensions', json={
+            "ids": ids
+        })
+        try:
+            return r.json()
+        except:
+            raise RuntimeError(r.text)
+
     def create_profile(self, data):
         r = self.s.post(
             'https://dolphin-anty-api.com/browser_profiles', json=data)

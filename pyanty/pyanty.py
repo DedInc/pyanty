@@ -5,10 +5,21 @@ import io
 import zipfile
 import shutil
 import platform
+
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from pyppeteer import connect
+
+try:
+    from pyppeteer import connect
+except:
+    print('Warning! To work with pyppeteer.\n You need install it with: pip install pyppeteer')
+
+try:
+    from playwright.async_api import async_playwright
+except:
+    print('Warning! To work with playwright.\n You need install it with: pip install playwright')
+
 from .utils import collect_garbage
 
 if sys.platform == 'win32':
@@ -114,7 +125,7 @@ def select_driver_executable(system, architecture):
     return executable_name
 
 
-def get_driver(options=Options(), port=9222):
+def get_driver(port=9222):
     system = platform.system()
     architecture = platform.machine()
     driver_path = select_driver_executable(system, architecture)
@@ -124,18 +135,31 @@ def get_driver(options=Options(), port=9222):
         unzip_driver_from_memory(driver_content)
         driver_path = select_driver_executable(system, architecture)
    
+    options = Options()
     options.add_experimental_option('debuggerAddress', f'127.0.0.1:{port}')
     driver = webdriver.Chrome(service=Service(driver_path), options=options)
     return driver
 
 
-async def get_browser(ws_endpoint, port):
-    browser = await connect(browserWSEndpoint=f'ws://127.0.0.1:{port}{ws_endpoint}')
-    pages = await browser.pages()
-    page = pages[0]
+async def get_browser(ws_endpoint, port, core='pyppeteer'):
+    if core == 'pyppeteer':
+        browser = await connect(browserWSEndpoint=f'ws://127.0.0.1:{port}{ws_endpoint}')
+        pages = await browser.pages()
+        page = pages[0]
 
-    await page.bringToFront()
-    return browser
+        await page.bringToFront()
+        return browser
+
+    elif core == 'playwright':
+        p = await async_playwright().start()
+        browser = await p.chromium.connect_over_cdp(f'ws://127.0.0.1:{port}{ws_endpoint}')
+        context = browser.contexts[0]
+        page = context.pages[0]
+
+        await page.bring_to_front()
+        return browser
+    else:
+        raise ValueError(f'{core} is unsupported!')
 
 
 if sys.platform == 'win32':

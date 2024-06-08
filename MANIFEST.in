@@ -1,4 +1,4 @@
 include README.MD
 include LICENSE
-include selenium_dolphin/api.py
-include selenium_dolphin/utils.py
+include pyanty/api.py
+include pyanty/utils.py
