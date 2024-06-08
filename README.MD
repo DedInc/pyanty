@@ -84,7 +84,7 @@ asyncio.run(main())
 dolphin.close_profile(profile_id)
 ```
 
-### Pyppeteer
+### Playwright
 
 ```python
 import asyncio
