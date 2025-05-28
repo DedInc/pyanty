@@ -84,7 +84,7 @@ asyncio.run(main())
 dolphin.close_profile(profile_id)
 ```
 
-### Playwright
+### Playwright/Patchright
 
 ```python
 import asyncio
@@ -113,7 +113,7 @@ port = response['automation']['port']
 ws_endpoint = response['automation']['wsEndpoint']
 
 async def main():
-    browser = await dolphin.get_browser(ws_endpoint, port, core='playwright')
+    browser = await dolphin.get_browser(ws_endpoint, port, core='playwright') # or core='patchright' for using undetectable version
     pages = await browser.pages()
     page = pages[0]
     await page.goto('http://google.com/')

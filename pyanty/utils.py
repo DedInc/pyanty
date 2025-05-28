@@ -33,7 +33,10 @@ def collect_garbage(api=None, profile_id=None):
             page += 1
 
         api_profile_ids = [f'{profile["id"]}' for profile in api_profiles]
-        
+
+        if not os.path.exists(profile_folder):
+            return
+
         local_profile_ids = os.listdir(profile_folder)
 
         garbage_profile_ids = set(local_profile_ids) - set(api_profile_ids)

@@ -126,7 +126,10 @@ class DolphinAPI:
     def check_proxy(self, **kwargs):
         r = self.s.post('http://localhost:3001/v1.0/check/proxy', json=kwargs)
         try:
-            return r.json()
+            data = r.json()
+            if not data['success']:
+                raise Exception(data)
+            return data
         except:
             raise RuntimeError(r.text)
 

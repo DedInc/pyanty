@@ -4,14 +4,14 @@ from setuptools import setup, find_packages
 with open('README.md', 'r', encoding='utf-8') as f:
     long_description = f.read()
 
-install_requires = ['requests', 'selenium'] 
+install_requires = ['requests', 'selenium']
 
 if sys.platform == 'win32':
     install_requires.append('pywinauto')
 
 setup(
     name='pyanty',
-    version='1.0.0',
+    version='1.0.1',
     author='Maehdakvan',
     author_email='visitanimation@google.com',
     description='Python module for controlling Dolphin browser profiles using Selenium, Pyppeteer, and Playwright. Includes Dolphin API for profile management.',
@@ -24,7 +24,7 @@ setup(
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
-        'Operating System :: Microsoft :: Windows', 
+        'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX :: Linux',
         'Operating System :: MacOS',
     ],

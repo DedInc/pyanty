@@ -10,16 +10,6 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 
-try:
-    from pyppeteer import connect
-except:
-    print('Warning! To work with pyppeteer.\n You need install it with: pip install pyppeteer')
-
-try:
-    from playwright.async_api import async_playwright
-except:
-    print('Warning! To work with playwright.\n You need install it with: pip install playwright')
-
 from .utils import collect_garbage
 
 if sys.platform == 'win32':
@@ -28,18 +18,22 @@ if sys.platform == 'win32':
 
 def run_profile(profile_id, headless=False):
     is_headless_str = '' if not headless else '&headless=true'
-    return requests.get(f'http://localhost:3001/v1.0/browser_profiles/{profile_id}/start?automation=1' + is_headless_str).json()
+    r = requests.get(f'http://localhost:3001/v1.0/browser_profiles/{profile_id}/start?automation=1' + is_headless_str)
+    data = r.json()
+    if 'error' in data:
+        raise Exception(data['error'])
+    return data
 
 
 def close_profile(profile_id):
-    r = requests.get(f'http://localhost:3001/v1.0/browser_profiles/{profile_id}/stop').json()
+    data = requests.get(f'http://localhost:3001/v1.0/browser_profiles/{profile_id}/stop').json()
     collect_garbage(profile_id=profile_id)
-    return r
+    return data
 
 
 def download_driver_to_memory(driver_url):
     response = requests.get(driver_url, stream=True)
-    
+
     if response.status_code != 200 or 'zip' not in response.headers.get('Content-Type', ''):
         raise ValueError("The requested driver is not available.")
 
@@ -59,7 +53,7 @@ def download_driver_to_memory(driver_url):
             f"{downloaded_size / (1024 * 1024):.2f}/{total_size / (1024 * 1024):.2f}MB"
         )
         print(f"\r{progress_bar}", end="")
-    
+
     driver_content.seek(0)
     print("\nDownload completed.")
     return driver_content
@@ -118,10 +112,10 @@ def select_driver_executable(system, architecture):
         executable_name = 'chromedriver'
     else:
         raise ValueError("Unsupported operating system or architecture")
-    
+
     if system != 'Windows':
         os.chmod(executable_name, 0o755)
-    
+
     return executable_name
 
 
@@ -134,7 +128,7 @@ def get_driver(port=9222):
         driver_content = get_dolphin_driver()
         unzip_driver_from_memory(driver_content)
         driver_path = select_driver_executable(system, architecture)
-   
+
     options = Options()
     options.add_experimental_option('debuggerAddress', f'127.0.0.1:{port}')
     driver = webdriver.Chrome(service=Service(driver_path), options=options)
@@ -143,6 +137,11 @@ def get_driver(port=9222):
 
 async def get_browser(ws_endpoint, port, core='pyppeteer'):
     if core == 'pyppeteer':
+        try:
+            from pyppeteer import connect
+        except ImportError:
+            raise ImportError('To work with pyppeteer core, you need to install it with: pip install pyppeteer')
+
         browser = await connect(browserWSEndpoint=f'ws://127.0.0.1:{port}{ws_endpoint}')
         pages = await browser.pages()
         page = pages[0]
@@ -150,7 +149,18 @@ async def get_browser(ws_endpoint, port, core='pyppeteer'):
         await page.bringToFront()
         return browser
 
-    elif core == 'playwright':
+    elif core == 'playwright' or core == 'patchright':
+        if core == 'playwright':
+            try:
+                from playwright.async_api import async_playwright
+            except ImportError:
+                raise ImportError('To work with playwright core, you need to install it with: pip install playwright')
+        else:
+            try:
+                from patchright.async_api import async_playwright
+            except ImportError:
+                raise ImportError('To work with playwright core, you need to install it with: pip install patchright')
+
         p = await async_playwright().start()
         browser = await p.chromium.connect_over_cdp(f'ws://127.0.0.1:{port}{ws_endpoint}')
         context = browser.contexts[0]
@@ -178,11 +188,11 @@ if sys.platform == 'win32':
                     email_field = desc
                 elif 'Password' in desc.window_text() or 'password' in desc.legacy_properties().get('Value', '').lower():
                     password_field = desc
-            
+
             if email_field and password_field:
                 email_field.click_input()
                 email_field.type_keys(login)
-                
+
                 password_field.click_input()
                 password_field.type_keys(password)
 
