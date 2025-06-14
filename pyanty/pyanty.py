@@ -12,13 +12,16 @@ from selenium.webdriver.chrome.options import Options
 
 from .utils import collect_garbage
 
+LOCAL_DOLPHIN_API_BASE_URL = "http://localhost:3001"
+DOLPHIN_DOCS_URL = 'https://intercom.help/dolphinteam/en/articles/7127390-basic-automation-dolphin-anty'
+
 if sys.platform == 'win32':
     from pywinauto.application import Application
 
 
 def run_profile(profile_id, headless=False):
     is_headless_str = '' if not headless else '&headless=true'
-    r = requests.get(f'http://localhost:3001/v1.0/browser_profiles/{profile_id}/start?automation=1' + is_headless_str)
+    r = requests.get(f'{LOCAL_DOLPHIN_API_BASE_URL}/v1.0/browser_profiles/{profile_id}/start?automation=1' + is_headless_str)
     data = r.json()
     if 'error' in data:
         raise Exception(data['error'])
@@ -26,7 +29,7 @@ def run_profile(profile_id, headless=False):
 
 
 def close_profile(profile_id):
-    data = requests.get(f'http://localhost:3001/v1.0/browser_profiles/{profile_id}/stop').json()
+    data = requests.get(f'{LOCAL_DOLPHIN_API_BASE_URL}/v1.0/browser_profiles/{profile_id}/stop').json()
     collect_garbage(profile_id=profile_id)
     return data
 
@@ -59,8 +62,7 @@ def download_driver_to_memory(driver_url):
     return driver_content
 
 def get_dolphin_driver():
-    docs_url = 'https://intercom.help/dolphinteam/en/articles/7127390-basic-automation-dolphin-anty'
-    html = requests.get(docs_url).text
+    html = requests.get(DOLPHIN_DOCS_URL).text
     driver_slices = html.split('/chromedriver')
     server_url = driver_slices[0].split('"')[-1]
     version = driver_slices[1].split('"')[0]

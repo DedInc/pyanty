@@ -11,7 +11,7 @@ if sys.platform == 'win32':
 
 setup(
     name='pyanty',
-    version='1.0.1',
+    version='1.1.0',
     author='Maehdakvan',
     author_email='visitanimation@google.com',
     description='Python module for controlling Dolphin browser profiles using Selenium, Pyppeteer, and Playwright. Includes Dolphin API for profile management.',

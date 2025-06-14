@@ -17,7 +17,7 @@ import random
 import pyanty as dolphin
 from pyanty import DolphinAPI, STABLE_CHROME_VERSION
 
-api = DolphinAPI(api_key='Your Api Key')
+api = DolphinAPI(api_key='Your Api Key') # or just DolphinAPI() to use auto fetch token
 
 response = api.get_profiles()
 if response['data']:
@@ -27,7 +27,7 @@ if response['data']:
 
 fingerprint = []
 while not fingerprint:
-  fingerprint = api.generate_fingerprint(platform='windows', browser_version=f'{random.randint(114, STABLE_CHROME_VERSION)}')
+  fingerprint = api.generate_fingerprint(platform='windows', browser_version=f'{random.randint(136, STABLE_CHROME_VERSION)}')
 
 data = api.fingerprint_to_profile(name='my superprofile', fingerprint=fingerprint)
 
@@ -62,7 +62,7 @@ if response['data']:
 
 fingerprint = []
 while not fingerprint:
-  fingerprint = api.generate_fingerprint(platform='windows', browser_version=f'{random.randint(114, STABLE_CHROME_VERSION)}')
+  fingerprint = api.generate_fingerprint(platform='windows', browser_version=f'{random.randint(136, STABLE_CHROME_VERSION)}')
 
 data = api.fingerprint_to_profile(name='my superprofile', fingerprint=fingerprint)
 
@@ -102,7 +102,7 @@ if response['data']:
 
 fingerprint = []
 while not fingerprint:
-  fingerprint = api.generate_fingerprint(platform='windows', browser_version=f'{random.randint(114, STABLE_CHROME_VERSION)}')
+  fingerprint = api.generate_fingerprint(platform='windows', browser_version=f'{random.randint(136, STABLE_CHROME_VERSION)}')
 
 data = api.fingerprint_to_profile(name='my superprofile', fingerprint=fingerprint)
 
@@ -153,10 +153,53 @@ fingerprint = api.generate_fingerprint(platform='linux') # you can use platform 
 
 data = api.fingerprint_to_profile(name='my profile', fingerprint=fingerprint) # also you can add tags=['test', 'pyanty'] and other
 
-response = api.create_profile(data)  
+response = api.create_profile(data)
 
 print(response)
 ```
+
+## 🔍 Bablosoft Fingerprints
+
+The library now (from v1.1.0) supports advanced fingerprint generation using Bablosoft's fingerprinting service for more realistic browser profiles.
+
+### Generate Bablosoft fingerprint
+
+```python
+from pyanty import DolphinAPI
+
+api = DolphinAPI()
+
+# Generate fingerprint with specific tags
+fingerprint = []
+while not 'ua' in fingerprint:
+    fingerprint = api.generate_fb_fingerprint(tags=['Apple Mac'])
+
+data = api.fingerprint_to_profile(name='my superprofile', fingerprint=fingerprint)
+profile_id = api.create_profile(data)['browserProfileId']
+
+print('Profile created with Bablosoft fingerprint!')
+```
+
+### Available tags
+
+You can use the following tags to customize your fingerprint generation:
+
+- **Platforms**: `Desktop`, `Mobile`
+- **Operating Systems**: `Microsoft Windows`, `Apple Mac`, `Android`, `Linux`, `iPad`, `iPhone`
+- **Browsers**: `Edge`, `Chrome`, `Safari`, `Firefox`, `IE`
+
+Tags can be combined for more specific targeting:
+
+```python
+# Example combinations
+fingerprint = api.generate_fb_fingerprint(tags=['Desktop', 'Microsoft Windows', 'Chrome'])
+fingerprint = api.generate_fb_fingerprint(tags=['Mobile', 'Android', 'Chrome'])
+fingerprint = api.generate_fb_fingerprint(tags=['iPad', 'Safari'])
+```
+
+### Testing fingerprints
+
+You can test and validate your generated fingerprints using the Bablosoft testing tool: [https://fp.bablosoft.com/#testing](https://fp.bablosoft.com/#testing)
 
 ## 📝 Custom data for profile
 
