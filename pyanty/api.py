@@ -150,7 +150,9 @@ class DolphinAPI:
         except:
             raise RuntimeError(r.text)
 
-    def fingerprint_to_profile(self, name, tags=[], fingerprint={}):
+    def fingerprint_to_profile(self, name, tags=[], fingerprint={},
+                               timezone={}, locale={}, geolocation={},
+                               proxy={}):
         data = dict()
         data['name'] = name
         data['tags'] = tags
@@ -191,22 +193,21 @@ class DolphinAPI:
         data['timezone'] = {
             'mode': 'auto',
             'value': None
-        }
+        } if not timezone else timezone
 
         data['locale'] = {
             'mode': 'auto',
             'value': None
-        }
+        } if not locale else locale
 
-        data['proxy'] = {}
+        data['proxy'] = {} if not proxy else proxy
 
         data['geolocation'] = {
             'mode': 'auto',
             'latitude': None,
             'longitude': None,
             'accuracy': None
-        }
-
+        } if not geolocation else geolocation
 
         data['audio'] = {
             'mode': 'real'
