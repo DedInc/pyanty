@@ -2,7 +2,7 @@ import sys
 from setuptools import setup, find_packages
 
 install_requires = ['requests', 'selenium']
-
+long_description = ''
 if sys.platform == 'win32':
     install_requires.append('pywinauto')
 
