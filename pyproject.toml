@@ -1,0 +1,65 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pyanty"
+version = "1.5.0"
+description = "Python module for controlling Dolphin browser profiles using Selenium, Pyppeteer, and Playwright."
+readme = { file = "README.MD", content-type = "text/markdown" }
+license = { file = "LICENSE" }
+requires-python = ">=3.8"
+authors = [
+    { name = "Maehdakvan", email = "visitanimation@google.com" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+]
+dependencies = [
+    "requests",
+    "selenium",
+    "pywinauto; sys_platform == 'win32'",
+]
+
+[project.optional-dependencies]
+pyppeteer = [
+    "pyppeteer",
+]
+playwright = [
+    "playwright",
+]
+patchright = [
+    "patchright",
+]
+all = [
+    "patchright",
+    "playwright",
+    "pyppeteer",
+]
+
+[project.urls]
+Homepage = "https://github.com/DedInc/pyanty"
+"Bug Tracker" = "https://github.com/DedInc/pyanty/issues"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/LICENSE",
+    "/README.MD",
+    "/pyanty",
+]
+exclude = [
+    "**/__pycache__",
+    "/.ruff_cache",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["pyanty"]
+include = ["LICENSE"]
+
+[tool.ruff.lint.per-file-ignores]
+"pyanty/vendor/leveldb/*.py" = ["ANN", "E501"]
+"pyanty/vendor/snappy/*.py" = ["ANN", "E501"]

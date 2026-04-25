@@ -1,6 +1,0 @@
-include README.MD
-include LICENSE
-include pyanty/api.py
-include pyanty/utils.py
-include pyanty/ccl_leveldb.py
-include pyanty/ccl_simplesnappy.py
