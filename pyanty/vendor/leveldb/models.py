@@ -4,11 +4,13 @@ import enum
 import io
 import os
 import struct
+import dataclasses
 import typing
 
 from .varint import read_le_varint
 
 
+@dataclasses.dataclass
 class BlockHandle:
     """See: https://github.com/google/leveldb/blob/master/doc/table_format.md
     A BlockHandle contains an offset and length of a block in an ldb table file"""
@@ -26,6 +28,7 @@ class BlockHandle:
             return BlockHandle.from_stream(stream)
 
 
+@dataclasses.dataclass
 class RawBlockEntry:
     """Raw key, value for a record in a LDB file Block, along with the offset within the block from which it came from
     See: https://github.com/google/leveldb/blob/master/doc/table_format.md"""
@@ -46,6 +49,7 @@ class KeyState(enum.Enum):
     Unknown = 2
 
 
+@dataclasses.dataclass
 class Record:
     """A record from leveldb; includes details of the origin file, state, etc."""
 

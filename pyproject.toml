@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pyanty"
-version = "1.5.0"
+version = "1.5.1"
 description = "Python module for controlling Dolphin browser profiles using Selenium, Pyppeteer, and Playwright."
 readme = { file = "README.MD", content-type = "text/markdown" }
 license = { file = "LICENSE" }
